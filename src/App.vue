@@ -2,23 +2,27 @@
 import MusicPlayer from './components/MusicPlayer.vue'
 import { ref, reactive, computed } from 'vue'
 const isShowLAside = ref(false)
-const isShowRAside = ref(false)
 const playList = reactive([
   {
     title: '我最喜欢的音乐',
-    isShow: false,
     songs: [
 
     ],
   },
   {
     title: '每天起床第一曲',
-    isShow: false,
     songs: [
 
     ],
   }
 ])
+const tmpList = reactive([])
+function display(playItem) {
+  tmpList.push({
+    isShow: true,
+    ...playItem
+  })
+}
 </script>
   
 <template>
@@ -70,20 +74,19 @@ const playList = reactive([
         <!-- 左侧栏主体-歌单 -->
         <div class="playlist">
           <el-scrollbar height='480px'>
-            <!-- 歌单item -->
             <div 
-              class="playlist-item
+              class="
+              playlist-item
               playlist-like
               scrollbar-demo-item
-              relative
               flex
               p-4
               cursor-pointer"
               v-for="playItem in playList"
-              @click="playItem.isShow = !playItem.isShow">
-              <!-- 歌单-图片 hover事件后显示icon（play） -->
+              @click="display(playItem)">
+              <!-- 歌单头像 -->
               <div class="thumb relative">
-                <img src="/public/static/images/你是我的猫.jpg" alt="" 
+                <img src="/public/static/images/一个人在滨湖公园.jpg" alt="" 
                   class="w-12 h-12
                   rounded-md">
                 <i class="
@@ -92,26 +95,16 @@ const playList = reactive([
                   absolute left-1/2 bottom-1/2 translate-y-1/2 -translate-x-1/2
                   text-white"></i>
               </div>
-              <!-- 歌单desc -->
+              <!-- 歌单描述 -->
               <div class="detail flex flex-col justify-between ml-2">
                 <span class="block text-sm">{{ playItem.title }}</span>
                 <span class="block text-sm text-gray-500">521 首</span>
               </div>
-              <!-- hover显示icon（arrow-right） -->
+              <!-- 歌单箭头 -->
               <div class="arrow-right 
                 flex-1
-                flex items-center justify-end">
-                <i class="iconfont icon-arrowright text-xl font-extrabold"></i>
-              </div>
-              <!-- 点击后显示 -->
-              <div class="detail
-                w-0
-                absolute top-0 right-0 translate-x-full z-10"
-                v-show="playItem.isShow">
-                <div class="detail-item">
-                  <span>黑色毛衣</span>
-                  <span>周杰伦</span>
-                </div>
+                flex justify-end items-center">
+                <i class="iconfont icon-arrowright text-3xl text-gray-500 font-extrabold"></i>
               </div>
             </div>
           </el-scrollbar>
@@ -138,8 +131,7 @@ const playList = reactive([
       flex-1 
       flex flex-col justify-between
       pt-5 lg:px-5">
-      <div 
-        class="search
+      <div class="search
         flex justify-center
         border-r-0
         ">
@@ -164,6 +156,101 @@ const playList = reactive([
             focus:border-transparent">
           <i class="iconfont icon-search text-xl"></i>
         </button>
+      </div>
+      <!-- display -->
+      <div 
+        class="nav 
+        shadow-md rounded-md
+        w-11/12
+        flex-1 
+        my-4 mx-auto">
+        <el-scrollbar height="520px">
+          <!-- 搜索结果 -->
+          <div 
+            class="nav-item relative">
+            <div 
+              class="header 
+              sticky left-0 top-0
+              bg-pink-50
+              border
+              flex justify-between items-center
+              px-4 py-2">
+              <div class="title relative">
+                <a href=""><span class="relative text-xl z-10 font-bold">搜索结果</span></a>
+                <div 
+                  class="absolute bottom-0 left-0 -translate-y-1/2 z-0
+                  bg-pink-300 w-full h-2"></div>
+              </div>
+              <button @click="">
+                <i 
+                  class="iconfont icon-eye-fill 
+                  text-2xl text-gray-300
+                  hover:text-gray-500 active:text-pink-300"></i>
+              </button>
+            </div>
+            <div 
+              v-show="false"
+              class="content py-2 px-4">
+              <div class="header flex">
+                <span class="flex-1 font-bold">歌曲</span>
+                <span class="font-bold w-24">歌手</span>
+                <span class="font-bold w-32">专辑</span>
+              </div>
+              <div 
+                v-for="i in 64"
+                class="content">
+                <div class="content-item flex py-2">
+                  <span class="flex-1">蜜雪冰城甜蜜蜜</span>
+                  <span class="w-24">刘德花</span>
+                  <span class="w-32">401专属小房间</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- tmpList 点击左侧边栏的 playList 后存入 tmpList，支持删除 -->
+          <div
+            v-for="tmpItem in tmpList" 
+            class="nav-item relative">
+            <div 
+              class="header 
+              sticky left-0 top-0
+              bg-pink-50
+              border
+              flex justify-between items-center
+              px-4 py-2">
+              <div class="title relative">
+                <a :href="'#' + tmpItem.title"><span class="relative text-xl z-10 font-bold">{{ tmpItem.title }}</span></a>
+                <div 
+                  class="absolute bottom-0 left-0 -translate-y-1/2 z-0
+                  bg-pink-300 w-full h-2"></div>
+              </div>
+              <button @click="tmpItem.isShow = !tmpItem.isShow">
+                <i 
+                  class="iconfont icon-eye-fill 
+                  text-2xl text-gray-300
+                  hover:text-gray-500 active:text-pink-300"></i>
+              </button>
+            </div>
+            <div 
+              v-show="tmpItem.isShow"
+              class="content py-2 px-4">
+              <div class="header flex">
+                <span class="flex-1 font-bold">歌曲</span>
+                <span class="font-bold w-24">歌手</span>
+                <span class="font-bold w-32">专辑</span>
+              </div>
+              <div 
+                v-for="i in 64"
+                class="content">
+                <div class="content-item flex py-2">
+                  <span class="flex-1">蜜雪冰城甜蜜蜜</span>
+                  <span class="w-24">刘德花</span>
+                  <span class="w-32">401专属小房间</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </el-scrollbar>
       </div>
       <MusicPlayer />
     </div>
