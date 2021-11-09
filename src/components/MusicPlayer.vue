@@ -101,7 +101,7 @@
         <!-- <button @click="l += 1">Test</button> -->
       </div>
     </div>
-    <audio :src="`/static/audio/${songs[songIdx]}.mp3`" ref="audio"></audio>
+    <audio :src="`/static/audio/${songs[songIdx]}.mp3`" ref="audio" id="audio"></audio>
     <!-- <audio src="/static/audio/一个人在滨湖公园.mp3" autoplay></audio> -->
     <!-- <audio ref="audio" src="http://m8.music.126.net/20211012115922/14514f4b4e2bb24c4f39d4d4babb3eaf/ymusic/0fd6/4f65/43ed/a8772889f38dfcb91c04da915b301617.mp3"></audio> -->
   </div>
