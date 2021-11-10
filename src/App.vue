@@ -1,48 +1,76 @@
 <script setup>
 import MusicPlayer from './components/MusicPlayer.vue'
-import { ref, reactive, computed } from 'vue'
-import { getImg, getKey, login, refresh, getSongs, getFM } from './api/api.js'
-import { request } from "@/utils/axios"
-let key = ''
-const qrImg = ref('')
+import { ref, reactive, onMounted } from 'vue'
+import { getUserPlaylist, getPlaylistDetail, getMusicDetail, getMusicUrl, search } from './api/index.js'
+
+onMounted(() => {
+  getPlayList()
+})
+
 const isShowLAside = ref(false)
+const isShowSearch = ref(false)
 const dialogVisible = ref(false)
-const playList = reactive([
-  {
-    title: '我最喜欢的音乐',
-    songs: [
+const input = ref(null)
+const searchInput = ref(null)
+const playList = reactive([])
+const tmpList = reactive({})
+const searchList = reactive([])
+const song = reactive({})
 
-    ],
-  },
-  {
-    title: '每天起床第一曲',
-    songs: [
 
-    ],
-  }
-])
-const tmpList = reactive([])
-function display(playItem) {
-  tmpList.push({
-    isShow: true,
-    ...playItem
-  })
-}
-
-function showQr() {
-  dialogVisible.value = true
-  getKey().then(res => {
-    key = res.data.unikey
-    console.log(key);
-    getImg(res.data.unikey).then(res => {
-      qrImg.value = res.data.qrimg
+// 搜索
+function searchSong(page) {
+  search(searchInput.value.value).then(res => {
+    res.data.result.songs.forEach(item => {
+      isShowSearch.value = true
+      searchList.push(item)
     })
   })
 }
 
-function isLogin() {
-  request('get', `/login/qr/check?key=${key}`).then(res => {
-    localStorage.setItem('')
+// 获得歌单数据，并推送到 tmpList
+function display(playItem) {
+  getPlaylistDetail(playItem.id).then(res => {
+    tmpList[playItem.id] = {
+      'title': playItem.name,
+      'songs': res.data.playlist.tracks
+    }
+  })
+}
+
+// 显示弹窗
+function shwoDialog() {
+  dialogVisible.value = true
+}
+
+// 弹窗确认，获取用户歌单
+function confirm() {
+  localStorage.setItem('uid', input.value.value)
+  dialogVisible.value = false
+  getPlayList()
+}
+
+// 获取用户歌单
+function getPlayList() {
+  let uid = localStorage.getItem('uid')
+  if (uid != undefined) {
+    getUserPlaylist(uid).then(res => {
+      res.data.playlist.forEach(item => {
+        playList.push(item)
+      })
+    })
+  }
+}
+
+// 播放音乐
+function play(id) {
+  // 获得音乐专辑图片地址
+  getMusicDetail(id).then(res => {
+    song.imgUrl = res.data.songs[0].al.picUrl
+  })
+  getMusicUrl(id).then(res => {
+    console.log(res.data.data[0].url);
+    song.url = res.data.data[0].url
   })
 }
 </script>
@@ -53,17 +81,43 @@ function isLogin() {
     overflow-hidden
     w-full
     flex">
-    <!-- 二维码 -->
-    <img src="" alt="">
+    <!-- 弹窗 -->
     <div class="">
       <el-dialog 
         v-model="dialogVisible"     
-        title="网易云扫码登录"
-        width="20%"
+        title="请输入网易云 UUID"
+        width="25%"
         center="center">
-        <img class="w-64 h-64" :src='qrImg' alt="二维码">
-        <button class="mx-auto text-2xl font-bold"
-          @click="isLogin()">点击确认扫码成功</button>
+        <div class="search
+          flex justify-center
+          border-r-0
+          ">
+          <input 
+            ref="input"
+            type="search"
+            class="w-4/5
+            border-2
+            rounded-l-md
+            border-pink-100
+            hover:border-pink-200
+            focus:border-pink-300
+            focus:ring-0
+            ">
+          <button 
+            type="search"
+            class="
+              -mx-0.5
+              bg-pink-300
+              border-pink-300
+              rounded-r-md
+              text-white
+              tracking-widest	
+              focus:ring-0
+              focus:border-transparent"
+            @click="confirm()">
+            确认
+          </button>
+        </div>
       </el-dialog>
     </div>
     <!-- 左侧栏 -->
@@ -98,7 +152,7 @@ function isLogin() {
             hover:bg-pink-200
             hover:border-dashed
             hover:border-pink-300"
-            @click="showQr()">LOGIN</button>
+            @click="shwoDialog()">LOGIN</button>
           <span class="text-3xl cursor-default">==></span>
         </div>
         <div class="mark">
@@ -122,19 +176,19 @@ function isLogin() {
               @click="display(playItem)">
               <!-- 歌单头像 -->
               <div class="thumb relative">
-                <img src="/public/static/images/一个人在滨湖公园.jpg" alt="" 
+                <img :src="playItem.coverImgUrl" alt="" 
                   class="w-12 h-12
                   rounded-md">
-                <i class="
+                <!-- <i class="
                   item-icon
                   iconfont icon-playcircle text-2xl
                   absolute left-1/2 bottom-1/2 translate-y-1/2 -translate-x-1/2
-                  text-white"></i>
+                  text-white"></i> -->
               </div>
               <!-- 歌单描述 -->
               <div class="detail flex flex-col justify-between ml-2">
-                <span class="block text-sm">{{ playItem.title }}</span>
-                <span class="block text-sm text-gray-500">521 首</span>
+                <span class="block text-sm w-32 truncate">{{ playItem.name }}</span>
+                <span class="block text-sm text-gray-500">{{ playItem.trackCount }} 首</span>
               </div>
               <!-- 歌单箭头 -->
               <div class="arrow-right 
@@ -172,6 +226,7 @@ function isLogin() {
         border-r-0
         ">
         <input 
+          ref="searchInput"
           type="search"
           class="w-4/5
           border-2
@@ -189,7 +244,8 @@ function isLogin() {
             border-pink-300
             rounded-r-md
             focus:ring-0
-            focus:border-transparent">
+            focus:border-transparent"
+          @click="searchSong()">
           <i class="iconfont icon-search text-xl"></i>
         </button>
       </div>
@@ -217,7 +273,7 @@ function isLogin() {
                   class="absolute bottom-0 left-0 -translate-y-1/2 z-0
                   bg-pink-300 w-full h-2"></div>
               </div>
-              <button @click="">
+              <button @click="isShowSearch = !isShowSearch">
                 <i 
                   class="iconfont icon-eye-fill 
                   text-2xl text-gray-300
@@ -225,20 +281,21 @@ function isLogin() {
               </button>
             </div>
             <div 
-              v-show="false"
-              class="content py-2 px-4">
-              <div class="header flex">
+              class="content py-2"
+              v-show="isShowSearch">
+              <div class="header flex px-4">
                 <span class="flex-1 font-bold">歌曲</span>
-                <span class="font-bold w-24">歌手</span>
-                <span class="font-bold w-32">专辑</span>
+                <span class="font-bold w-32">歌手</span>
+                <span class="font-bold w-64 ml-8">专辑</span>
               </div>
               <div 
-                v-for="i in 64"
-                class="content">
-                <div class="content-item flex py-2">
-                  <span class="flex-1">蜜雪冰城甜蜜蜜</span>
-                  <span class="w-24">刘德花</span>
-                  <span class="w-32">401专属小房间</span>
+                v-for="searchItem in searchList"
+                class="content cursor-pointer"
+                @click="play(searchItem.id)">
+                <div class="content-item flex py-2 px-4 hover:bg-pink-200">
+                  <span class="flex-1">{{ searchItem.name }}</span>
+                  <span class="w-32 truncate">{{ searchItem.artists[0].name }}</span>
+                  <span class="w-64 truncate ml-8">{{ searchItem.album.name }}</span>
                 </div>
               </div>
             </div>
@@ -269,26 +326,27 @@ function isLogin() {
             </div>
             <div 
               v-show="tmpItem.isShow"
-              class="content py-2 px-4">
-              <div class="header flex">
+              class="content py-2">
+              <div class="header flex px-4">
                 <span class="flex-1 font-bold">歌曲</span>
-                <span class="font-bold w-24">歌手</span>
-                <span class="font-bold w-32">专辑</span>
+                <span class="font-bold w-32">歌手</span>
+                <span class="font-bold w-64 ml-8">专辑</span>
               </div>
               <div 
-                v-for="i in 64"
+                v-for="song in tmpItem.songs"
                 class="content">
-                <div class="content-item flex py-2">
-                  <span class="flex-1">蜜雪冰城甜蜜蜜</span>
-                  <span class="w-24">刘德花</span>
-                  <span class="w-32">401专属小房间</span>
+                <div class="content-item flex py-2 px-4 cursor-pointer hover:bg-pink-200"
+                  @click="play(song.id)">
+                  <span class="flex-1">{{ song.name }}</span>
+                  <span class="w-32 truncate">{{ song.ar[0].name }}</span>
+                  <span class="w-64 truncate ml-8">{{ song.al.name }}</span>
                 </div>
               </div>
             </div>
           </div>
         </el-scrollbar>
       </div>
-      <MusicPlayer />
+      <MusicPlayer :song="song" />
     </div>
   </div>
 </template>
@@ -308,5 +366,14 @@ function isLogin() {
 
 .playlist-item:hover .arrow-right {
   visibility: visible;
+}
+
+.el-dialog {
+  background: rgba( 253, 242, 248 ) !important;
+  box-shadow: 0 8px 32px 0 rgba( 249, 168, 212, 0.37 ) !important;
+  backdrop-filter: blur( 4px ) !important;
+  -webkit-backdrop-filter: blur( 4px ) !important;
+  border-radius: 10px !important;
+  border: 1px solid rgba( 255, 255, 255, 0.18 ) !important;
 }
 </style>

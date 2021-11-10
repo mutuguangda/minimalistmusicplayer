@@ -5,18 +5,20 @@
     audio.value.addEventListener('ended', nextSong)
     audio.value.addEventListener('timeupdate', updateProgress)
     progressContainer.value.addEventListener('click', setProgress)
+    props.song.imgUrl = '/static/images/一个人在滨湖公园.jpg'
+    props.song.url = '/static/audio/一个人在滨湖公园.mp3'
   })
+
+  const props = defineProps({
+    song: Object
+  })
+
   const audio = ref(null)
   const progressContainer = ref(null)
   const progress = ref(null)
   const status = ref(false)
-  const songs = reactive([
-    '一个人在滨湖公园',
-    '你是我的猫'])
-  const songIdx = ref(0)
   const l = ref(0)
   function prevSong() {
-    songIdx.value = songIdx.value > 0 ? --songIdx.value : songs.length - 1
     nextTick(() => {
       if (status.value) audio.value.play()
     })
@@ -29,7 +31,6 @@
   }
 
   function nextSong() {
-    songIdx.value = songIdx.value < songs.length - 1 ? ++songIdx.value : 0
     nextTick(() => {
       if (status.value) audio.value.play()
     })
@@ -56,7 +57,7 @@
       <img class="player-thumb-img z-20 w-24 h-24 absolute left-0 bottom-0 
         rounded-full" 
         :class="{ 'animate-spin-slow': status }"
-        :src="`/static/images/${songs[songIdx]}.jpg`" alt="">
+        :src="song.imgUrl" alt="">
       <div class="player-thumb-dot z-30 w-4 h-4 bg-white	absolute rounded-full bottom-full right-1/2
         transform-gpu translate-x-1/2 translate-y-1/2">
       </div>
@@ -92,16 +93,16 @@
             <i class="iconfont icon-forward"></i>
           </button>
         </div>
-        <div class="player-lyric relative text-2xl text-gray-500 
+        <!-- <div class="player-lyric relative text-2xl text-gray-500 
           flex-1 text-center h-8 w-0 px-8 flex flex-col truncate">
           <span :style="{ transform: `translateY(-${l * 2}rem)`}" class="transition-transform">一件黑色毛衣 两个人的回忆</span>
           <span :style="{ transform: `translateY(-${l * 2}rem)`}" class="transition-transform">一件黑色毛衣 aaaaaaaaaaa两个人的回忆一件黑色毛衣 aaaaaaaaaaa两个人的回忆一件黑色毛衣 aaaaaaaaaaa两个人的回忆一件黑色毛衣 aaaaaaaaaaa两个人的回忆一件黑色毛衣 aaaaaaaaaaa两个人的回忆一件黑色毛衣 aaaaaaaaaaa两个人的回忆一件黑色毛衣 aaaaaaaaaaa两个人的回忆一件黑色毛衣 aaaaaaaaaaa两个人的回忆一件黑色毛衣 aaaaaaaaaaa两个人的回忆</span>
           <span :style="{ transform: `translateY(-${l * 2}rem)`}" class="transition-transform">一件黑色毛衣 bbbbbbbbbbb两个人的回忆</span>
-        </div> 
+        </div>  -->
         <!-- <button @click="l += 1">Test</button> -->
       </div>
     </div>
-    <audio :src="`/static/audio/${songs[songIdx]}.mp3`" ref="audio" id="audio"></audio>
+    <audio :src="song.url" ref="audio" id="audio"></audio>
     <!-- <audio src="/static/audio/一个人在滨湖公园.mp3" autoplay></audio> -->
     <!-- <audio ref="audio" src="http://m8.music.126.net/20211012115922/14514f4b4e2bb24c4f39d4d4babb3eaf/ymusic/0fd6/4f65/43ed/a8772889f38dfcb91c04da915b301617.mp3"></audio> -->
   </div>
