@@ -1,0 +1,1 @@
+https://mutuguangda.github.io/minimalistmusicplayer/dist
