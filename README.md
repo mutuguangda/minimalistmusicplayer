@@ -1,1 +1,1 @@
-https://mutuguangda.github.io/minimalistmusicplayer/dist
+[Demo](https://mutuguangda.github.io/minimalistmusicplayer/dist)
